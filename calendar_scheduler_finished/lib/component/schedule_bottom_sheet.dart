@@ -1,12 +1,14 @@
+import 'package:calendar_scheduler/database/drift_database.dart';
 import 'package:flutter/material.dart';
 import 'package:calendar_scheduler/component/custom_text_field.dart';
 import 'package:calendar_scheduler/const/colors.dart';
 import 'package:drift/drift.dart' hide Column;
-import 'package:get_it/get_it.dart';
-import 'package:calendar_scheduler/database/drift_database.dart';
 import 'package:calendar_scheduler/model/schedule_model.dart';
 import 'package:provider/provider.dart';
 import 'package:calendar_scheduler/provider/schedule_provider.dart';
+import 'package:uuid/uuid.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ScheduleBottomSheet extends StatefulWidget {
   final DateTime selectedDate;
@@ -108,20 +110,39 @@ class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
     );
   }
 
-  void onSavePressed(BuildContext context) async {    if (formKey.currentState!.validate()) {
+  void onSavePressed(BuildContext context) async {
+    if (formKey.currentState!.validate()) {
       // ➊ 폼 검증하기
       formKey.currentState!.save(); // ➋ 폼 저장하기
 
-      context.read<ScheduleProvider>().createSchedule(
-        schedule: ScheduleModel(
-          id: 'new_model',  // ➊ 임시 ID
+      // 스케줄 모델 생성
+      final schedule = ScheduleModel(
+          id: Uuid().v4(),
           content: content!,
           date: widget.selectedDate,
           startTime: startTime!,
-          endTime: endTime!,
-        ),
-      );
+          endTime: endTime!);
+      //현재 로그인한 사용자 정보를 가져옵니다.
+      final user = FirebaseAuth.instance.currentUser;
 
+      //만약 로그인한 사용자 정보를 가져오지 못한다면 다시 로그인을 요청
+      if (user == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('로그인이 필요합니다.'),
+          ),
+        );
+        Navigator.of(context).pop();
+        return;
+      }
+
+      // 스케줄 모델 파이어스토에어 삽입
+      await FirebaseFirestore.instance
+          .collection('schedule')
+          .doc(schedule.id)
+          .set(
+        {...schedule.toJson(), 'author': user.email},
+      );
       Navigator.of(context).pop();
     }
   }

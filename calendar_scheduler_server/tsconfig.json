@@ -11,7 +11,7 @@
     "outDir": "./dist",
     "baseUrl": "./",
     "incremental": true,
-    "skipLibCheck": true,
+    "skipLibCheck": true,  // 추가
     "strictNullChecks": false,
     "noImplicitAny": false,
     "strictBindCallApply": false,
