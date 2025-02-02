@@ -27,9 +27,4 @@
 
 ## 🖼 화면 구성
 ### 메인 화면
-<img src=""/>
-
-### 로그인 화면
-<img src=""/>
-<img src=""/>
-<img src=""/>
+![Image](https://github.com/user-attachments/assets/10e23874-c650-49fc-a3a6-bba8ce3efa0f)
